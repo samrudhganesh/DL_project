@@ -3,345 +3,374 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoML Studio</title>
+  <title>AutoML Studio • Intelligent Model Forge</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
   <style>
     :root {
-      --bg: #0f1117;
-      --surface: #1a1d27;
-      --surface2: #22263a;
-      --border: #2e3250;
-      --accent: #6c63ff;
-      --accent2: #48cfad;
-      --danger: #ff6b6b;
-      --text: #e8eaf6;
-      --text2: #9095b4;
-      --radius: 12px;
+      --accent: #6366f1;
+      --accent2: #22d3ee;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; min-height: 100vh; }
-
-    /* ── Layout ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 18px 32px;
-      display: flex; align-items: center; gap: 12px;
+    body {
+      font-family: 'Inter', system_ui, sans-serif;
+      background: #0a0c14;
+      color: #e2e8f0;
     }
-    header .logo { font-size: 1.5rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    header .sub { font-size: .85rem; color: var(--text2); }
+    .logo-font { font-family: 'Space Grotesk', sans-serif; }
 
-    main { max-width: 1100px; margin: 0 auto; padding: 32px 20px; display: grid; gap: 24px; }
-
-    /* ── Cards ── */
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; }
-    .card h2 { font-size: 1rem; font-weight: 600; margin-bottom: 16px; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; }
-
-    /* ── Config ── */
-    #config-row { display: flex; gap: 12px; flex-wrap: wrap; }
-    #config-row input {
-      flex: 1; min-width: 260px;
-      background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
-      color: var(--text); padding: 10px 14px; font-size: .9rem; outline: none;
+    .glass {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(148, 163, 184, 0.15);
     }
-    #config-row input:focus { border-color: var(--accent); }
-    #save-url { padding: 10px 18px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
-    #save-url:hover { opacity: .85; }
-    #url-status { font-size: .8rem; color: var(--accent2); margin-top: 6px; }
 
-    /* ── Drop zone ── */
-    #drop-zone {
-      border: 2px dashed var(--border); border-radius: var(--radius);
-      padding: 48px 24px; text-align: center; cursor: pointer; transition: .2s;
+    .step { display: none; }
+    .step.active { display: block; animation: fadeIn 0.6s ease forwards; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-    #drop-zone:hover, #drop-zone.over { border-color: var(--accent); background: rgba(108,99,255,.06); }
-    #drop-zone .icon { font-size: 2.5rem; margin-bottom: 12px; }
-    #drop-zone p { color: var(--text2); font-size: .9rem; }
-    #drop-zone strong { color: var(--text); }
-    #file-input { display: none; }
 
-    /* ── File info ── */
-    #file-info { display: none; background: var(--surface2); border-radius: 8px; padding: 12px 16px; font-size: .85rem; }
-    #file-info .fname { font-weight: 600; color: var(--accent2); }
-
-    /* ── Train button ── */
-    #train-btn {
-      width: 100%; padding: 14px; border-radius: var(--radius); border: none;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer; transition: .2s;
+    .train-btn {
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    #train-btn:hover:not(:disabled) { opacity: .88; transform: translateY(-1px); }
-    #train-btn:disabled { opacity: .45; cursor: not-allowed; }
-
-    /* ── Progress ── */
-    #progress-wrap { display: none; }
-    .progress-bar { background: var(--surface2); border-radius: 99px; height: 8px; overflow: hidden; margin-top: 10px; }
-    .progress-fill { height: 100%; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width .4s; }
-    #progress-msg { font-size: .85rem; color: var(--text2); margin-top: 8px; }
-
-    /* ── Error ── */
-    #error-box { display: none; background: rgba(255,107,107,.1); border: 1px solid var(--danger); border-radius: 8px; padding: 14px 16px; color: var(--danger); font-size: .9rem; }
-
-    /* ── Results ── */
-    #results-wrap { display: none; }
-    .badges { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
-    .badge { background: var(--surface2); border-radius: 8px; padding: 10px 16px; font-size: .85rem; }
-    .badge span { display: block; color: var(--text2); font-size: .75rem; margin-bottom: 2px; }
-    .badge strong { color: var(--accent2); font-size: 1rem; }
-
-    /* ── Table ── */
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: .85rem; }
-    thead th { text-align: left; padding: 10px 14px; color: var(--text2); border-bottom: 1px solid var(--border); font-weight: 600; text-transform: uppercase; font-size: .75rem; letter-spacing: .04em; }
-    tbody tr { border-bottom: 1px solid rgba(255,255,255,.04); transition: .15s; }
-    tbody tr:hover { background: var(--surface2); }
-    tbody td { padding: 12px 14px; }
-    .rank-1 td:first-child { color: var(--accent2); font-weight: 700; }
-    .score-bar { display: flex; align-items: center; gap: 8px; }
-    .bar { flex: 1; background: var(--surface2); border-radius: 99px; height: 6px; min-width: 60px; }
-    .bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-
-    /* ── Insights ── */
-    #insights-box { display: none; }
-    #insights-text { background: var(--surface2); border-radius: 8px; padding: 16px; font-size: .875rem; line-height: 1.7; color: var(--text2); white-space: pre-wrap; }
-
-    /* ── Download ── */
-    #download-btn {
-      padding: 12px 24px; border-radius: var(--radius); border: 1px solid var(--accent2);
-      background: transparent; color: var(--accent2); font-weight: 600; cursor: pointer; font-size: .9rem;
+    .train-btn:hover:not(:disabled) {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 25px -5px rgb(99 102 241 / 0.3);
     }
-    #download-btn:hover { background: rgba(72,207,173,.1); }
-
-    @media (max-width: 600px) {
-      header { padding: 14px 16px; }
-      main { padding: 16px 12px; }
+    .model-row:hover {
+      background: rgba(99, 102, 241, 0.08);
     }
   </style>
 </head>
-<body>
+<body class="min-h-screen pb-20">
 
-<header>
-  <div>
-    <div class="logo">⚡ AutoML Studio</div>
-    <div class="sub">Upload a CSV → compare 13 models automatically · 100% free</div>
-  </div>
-</header>
-
-<main>
-
-  <!-- API URL config -->
-  <div class="card">
-    <h2>🔗 Backend URL</h2>
-    <div id="config-row">
-      <input id="api-url-input" type="url" placeholder="https://your-space.hf.space" />
-      <button id="save-url">Save</button>
+  <!-- Header -->
+  <header class="border-b border-slate-800 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-5 flex items-center justify-between">
+      <div class="flex items-center gap-4">
+        <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-cyan-400 rounded-2xl flex items-center justify-center text-2xl shadow-inner">
+          ⚡
+        </div>
+        <div>
+          <h1 class="logo-font text-3xl font-semibold tracking-tighter text-white">AutoML Studio</h1>
+          <p class="text-xs text-slate-500 tracking-widest">POWERED BY GROQ + HUGGING FACE</p>
+        </div>
+      </div>
     </div>
-    <div id="url-status"></div>
-  </div>
+  </header>
 
-  <!-- Upload -->
-  <div class="card">
-    <h2>📂 Upload Dataset</h2>
-    <div id="drop-zone" onclick="document.getElementById('file-input').click()">
-      <div class="icon">📊</div>
-      <p><strong>Click to browse</strong> or drag & drop a CSV file</p>
-      <p style="margin-top:6px;font-size:.8rem;">Last column is used as the <strong>target</strong> variable</p>
+  <main class="max-w-6xl mx-auto px-6 pt-10">
+
+    <!-- Step 1: Connect Backend -->
+    <div id="step-1" class="step active glass rounded-3xl p-8 mb-8">
+      <h2 class="text-xl font-semibold mb-2 flex items-center gap-3">
+        <span class="text-2xl">🔗</span> Step 1: Connect Backend
+      </h2>
+      <p class="text-slate-400 mb-6">Enter your Hugging Face Space URL</p>
+      
+      <div class="flex gap-4">
+        <input id="api-url-input" type="url" 
+          class="flex-1 bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-2xl px-6 py-4 outline-none text-sm"
+          placeholder="https://samrudhganesh-projectdl.hf.space">
+        <button id="save-url" 
+          class="px-10 font-semibold bg-indigo-600 hover:bg-indigo-500 rounded-2xl transition-all">
+          Connect
+        </button>
+      </div>
+      <div id="url-status" class="mt-4 text-sm"></div>
     </div>
-    <input type="file" id="file-input" accept=".csv" />
-    <div id="file-info" style="margin-top:12px;"></div>
-  </div>
 
-  <!-- Train -->
-  <div class="card" style="padding:20px;">
-    <button id="train-btn" disabled>🚀 Train All Models</button>
-    <div id="progress-wrap" style="margin-top:16px;">
-      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-      <div id="progress-msg">Starting training…</div>
-    </div>
-    <div id="error-box" style="margin-top:14px;"></div>
-  </div>
-
-  <!-- Results -->
-  <div class="card" id="results-wrap">
-    <h2>🏆 Model Leaderboard</h2>
-    <div class="badges" id="badges"></div>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>#</th><th>Model</th><th>Accuracy / R²</th><th>Precision</th><th>Recall</th><th>F1 Score</th>
-          </tr>
-        </thead>
-        <tbody id="results-body"></tbody>
-      </table>
-    </div>
-    <div style="margin-top:20px;">
-      <button id="download-btn">⬇️ Download Best Model (.pkl)</button>
-    </div>
-  </div>
-
-  <!-- AI Insights -->
-  <div class="card" id="insights-box">
-    <h2>🤖 AI Dataset Insights</h2>
-    <div id="insights-text"></div>
-  </div>
-
-</main>
-
-<script>
-  // ── State ─────────────────────────────────────────────────────────────────
-  let apiBase = localStorage.getItem('automl_api') || '';
-  let selectedFile = null;
-
-  // ── Init ──────────────────────────────────────────────────────────────────
-  document.getElementById('api-url-input').value = apiBase;
-  if (apiBase) document.getElementById('url-status').textContent = '✅ URL saved: ' + apiBase;
-
-  document.getElementById('save-url').addEventListener('click', () => {
-    const v = document.getElementById('api-url-input').value.trim().replace(/\/$/, '');
-    if (!v) return;
-    apiBase = v;
-    localStorage.setItem('automl_api', v);
-    document.getElementById('url-status').textContent = '✅ URL saved: ' + v;
-    updateTrainBtn();
-  });
-
-  // ── Drag & drop ───────────────────────────────────────────────────────────
-  const dz = document.getElementById('drop-zone');
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('over'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
-  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('over'); handleFile(e.dataTransfer.files[0]); });
-  document.getElementById('file-input').addEventListener('change', e => handleFile(e.target.files[0]));
-
-  function handleFile(f) {
-    if (!f || !f.name.endsWith('.csv')) { alert('Please upload a .csv file'); return; }
-    selectedFile = f;
-    const info = document.getElementById('file-info');
-    info.style.display = 'block';
-    info.innerHTML = `<span class="fname">📄 ${f.name}</span> <span style="color:var(--text2);margin-left:12px;">${(f.size/1024).toFixed(1)} KB</span>`;
-    updateTrainBtn();
-  }
-
-  function updateTrainBtn() {
-    document.getElementById('train-btn').disabled = !(selectedFile && apiBase);
-  }
-
-  // ── Training ──────────────────────────────────────────────────────────────
-  document.getElementById('train-btn').addEventListener('click', async () => {
-    const btn = document.getElementById('train-btn');
-    const progressWrap = document.getElementById('progress-wrap');
-    const progressFill = document.getElementById('progress-fill');
-    const progressMsg  = document.getElementById('progress-msg');
-    const errorBox     = document.getElementById('error-box');
-
-    btn.disabled = true;
-    errorBox.style.display = 'none';
-    document.getElementById('results-wrap').style.display = 'none';
-    document.getElementById('insights-box').style.display = 'none';
-    progressWrap.style.display = 'block';
-
-    const msgs = [
-      [10,  'Uploading dataset…'],
-      [25,  'Encoding features…'],
-      [40,  'Training ML models…'],
-      [65,  'Training deep learning models…'],
-      [80,  'Evaluating & comparing…'],
-      [90,  'Generating AI insights…'],
-      [98,  'Almost done…'],
-    ];
-    let msgIdx = 0;
-    const ticker = setInterval(() => {
-      if (msgIdx < msgs.length) {
-        progressFill.style.width = msgs[msgIdx][0] + '%';
-        progressMsg.textContent = msgs[msgIdx][1];
-        msgIdx++;
-      }
-    }, 2200);
-
-    try {
-      const form = new FormData();
-      form.append('file', selectedFile);
-
-      const res = await fetch(`${apiBase}/api/train`, { method: 'POST', body: form });
-      clearInterval(ticker);
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: res.statusText }));
-        throw new Error(err.detail || 'Training failed');
-      }
-
-      progressFill.style.width = '100%';
-      progressMsg.textContent = '✅ Training complete!';
-
-      const data = await res.json();
-      renderResults(data);
-
-    } catch (e) {
-      clearInterval(ticker);
-      progressWrap.style.display = 'none';
-      errorBox.style.display = 'block';
-      errorBox.textContent = '❌ ' + e.message;
-    } finally {
-      btn.disabled = false;
-    }
-  });
-
-  // ── Render results ────────────────────────────────────────────────────────
-  function renderResults({ results, insights }) {
-    const { models, best_model, best_score, problem_type } = results;
-
-    // Sort by f1_score desc
-    const sorted = [...models].sort((a, b) => b.f1_score - a.f1_score);
-    const metricLabel = problem_type === 'regression' ? 'R²' : 'Accuracy';
-
-    // Badges
-    document.getElementById('badges').innerHTML = `
-      <div class="badge"><span>Best Model</span><strong>${best_model}</strong></div>
-      <div class="badge"><span>Best F1 / R²</span><strong>${(best_score * 100).toFixed(1)}%</strong></div>
-      <div class="badge"><span>Task</span><strong>${problem_type === 'regression' ? '📈 Regression' : '🏷️ Classification'}</strong></div>
-      <div class="badge"><span>Models Trained</span><strong>${models.length}</strong></div>
-    `;
-
-    // Table
-    const tbody = document.getElementById('results-body');
-    tbody.innerHTML = sorted.map((m, i) => `
-      <tr class="${i === 0 ? 'rank-1' : ''}">
-        <td>${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td>
-        <td>${m.name}</td>
-        <td>
-          <div class="score-bar">
-            <div class="bar"><div class="bar-fill" style="width:${(m.accuracy*100).toFixed(0)}%"></div></div>
-            <span>${(m.accuracy*100).toFixed(1)}%</span>
+    <!-- Step 2: Upload Dataset -->
+    <div id="step-2" class="step glass rounded-3xl p-8 mb-8">
+      <h2 class="text-xl font-semibold mb-6 flex items-center gap-3">
+        <span class="text-2xl">📂</span> Step 2: Upload Dataset
+      </h2>
+      <div id="drop-zone"
+        class="border-2 border-dashed border-slate-600 hover:border-indigo-400 rounded-3xl p-16 text-center transition-all cursor-pointer">
+        <div class="text-6xl mb-6">📊</div>
+        <p class="text-xl font-medium">Drop your CSV file here</p>
+        <p class="text-slate-400 mt-2">or click to browse • Last column = Target</p>
+      </div>
+      <input type="file" id="file-input" accept=".csv" class="hidden">
+      
+      <div id="file-info" class="hidden mt-8 glass rounded-2xl p-6">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center gap-4">
+            <span class="text-4xl">📄</span>
+            <div>
+              <p id="filename" class="font-medium"></p>
+              <p id="filesize" class="text-xs text-slate-400"></p>
+            </div>
           </div>
-        </td>
-        <td>${(m.precision*100).toFixed(1)}%</td>
-        <td>${(m.recall*100).toFixed(1)}%</td>
-        <td><strong>${(m.f1_score*100).toFixed(1)}%</strong></td>
-      </tr>
-    `).join('');
+          <div id="file-stats" class="text-right text-sm text-slate-300"></div>
+        </div>
+      </div>
+    </div>
 
-    document.getElementById('results-wrap').style.display = 'block';
+    <!-- Step 3: Train -->
+    <div id="step-3" class="step glass rounded-3xl p-8 mb-8">
+      <button id="train-btn" disabled
+        class="train-btn w-full py-7 text-xl font-semibold bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-3xl disabled:opacity-50 flex items-center justify-center gap-4">
+        🚀 Train All Models
+        <span id="train-spinner" class="hidden animate-spin text-2xl">⟳</span>
+      </button>
+    </div>
 
-    // Insights
-    if (insights) {
-      document.getElementById('insights-text').textContent = insights;
-      document.getElementById('insights-box').style.display = 'block';
+    <!-- Progress -->
+    <div id="progress-wrap" class="hidden glass rounded-3xl p-8 mb-8">
+      <div class="flex justify-between text-sm mb-3 text-slate-400">
+        <span>Training in progress</span>
+        <span id="progress-percent" class="font-mono">0%</span>
+      </div>
+      <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+        <div id="progress-fill" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full transition-all duration-1000" style="width: 0%"></div>
+      </div>
+      <div id="progress-msg" class="mt-6 text-center text-slate-300 font-medium">Uploading dataset...</div>
+    </div>
+
+    <!-- Results -->
+    <div id="step-4" class="step glass rounded-3xl p-8">
+      <h2 class="text-2xl font-semibold mb-8">🏆 Training Results</h2>
+      
+      <!-- Summary -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10" id="summary-badges"></div>
+
+      <!-- Leaderboard -->
+      <div class="overflow-x-auto mb-10">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-slate-700 text-xs uppercase text-slate-400">
+              <th class="py-5 px-6 text-left">Rank</th>
+              <th class="py-5 px-6 text-left">Model</th>
+              <th class="py-5 px-6 text-left">Score</th>
+              <th class="py-5 px-6 text-left">Precision</th>
+              <th class="py-5 px-6 text-left">Recall</th>
+              <th class="py-5 px-6 text-left">F1 Score</th>
+            </tr>
+          </thead>
+          <tbody id="results-body" class="text-sm divide-y divide-slate-700"></tbody>
+        </table>
+      </div>
+
+      <div class="flex justify-center">
+        <button id="download-btn"
+          class="px-12 py-5 bg-slate-900 hover:bg-slate-800 border border-cyan-400 text-cyan-400 font-semibold rounded-2xl flex items-center gap-3 transition-all">
+          ⬇️ Download Best Model (.pkl)
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Insights -->
+    <div id="insights-box" class="step glass rounded-3xl p-8 mt-8 hidden">
+      <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">
+        🤖 AI Dataset Insights
+      </h2>
+      <div id="insights-text" class="text-slate-300 leading-relaxed text-[15px] whitespace-pre-wrap"></div>
+    </div>
+
+  </main>
+
+  <script>
+    // ==================== STATE ====================
+    let apiBase = localStorage.getItem('automl_api') || '';
+    let selectedFile = null;
+    let currentStep = 1;
+
+    // ==================== ELEMENTS ====================
+    const apiInput = document.getElementById('api-url-input');
+    const saveBtn = document.getElementById('save-url');
+    const urlStatus = document.getElementById('url-status');
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileInfo = document.getElementById('file-info');
+    const trainBtn = document.getElementById('train-btn');
+
+    // ==================== INIT ====================
+    apiInput.value = apiBase;
+    if (apiBase) {
+      urlStatus.innerHTML = `✅ Connected successfully`;
+      goToStep(2);
     }
-  }
 
-  // ── Download model ─────────────────────────────────────────────────────────
-  document.getElementById('download-btn').addEventListener('click', async () => {
-    try {
-      const res = await fetch(`${apiBase}/api/download-model`);
-      if (!res.ok) throw new Error(await res.text());
-      const blob = await res.blob();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'best_model.pkl';
-      a.click();
-    } catch (e) {
-      alert('Download failed: ' + e.message);
+    // ==================== STEP NAVIGATION ====================
+    function goToStep(step) {
+      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+      document.getElementById(`step-${step}`).classList.add('active');
+      currentStep = step;
     }
-  });
-</script>
+
+    // ==================== CONNECT BACKEND ====================
+    saveBtn.addEventListener('click', () => {
+      const url = apiInput.value.trim().replace(/\/$/, '');
+      if (!url) return alert("Please enter your backend URL");
+      
+      apiBase = url;
+      localStorage.setItem('automl_api', url);
+      urlStatus.innerHTML = `✅ Connected to backend`;
+      goToStep(2);
+    });
+
+    // ==================== UPLOAD ====================
+    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('dragover', e => {
+      e.preventDefault();
+      dropZone.classList.add('border-indigo-400', 'bg-indigo-500/5');
+    });
+    dropZone.addEventListener('dragleave', () => {
+      dropZone.classList.remove('border-indigo-400', 'bg-indigo-500/5');
+    });
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('border-indigo-400', 'bg-indigo-500/5');
+      handleFile(e.dataTransfer.files[0]);
+    });
+
+    fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+    function handleFile(file) {
+      if (!file || !file.name.endsWith('.csv')) {
+        alert("Please upload a valid CSV file");
+        return;
+      }
+      selectedFile = file;
+      
+      document.getElementById('filename').textContent = file.name;
+      document.getElementById('filesize').textContent = `${(file.size/1024).toFixed(1)} KB`;
+      fileInfo.classList.remove('hidden');
+
+      goToStep(3);   // Move to Train step after upload
+    }
+
+    // ==================== TRAIN BUTTON ====================
+    trainBtn.addEventListener('click', async () => {
+      if (!selectedFile || !apiBase) return;
+
+      const progressWrap = document.getElementById('progress-wrap');
+      const progressFill = document.getElementById('progress-fill');
+      const progressMsg = document.getElementById('progress-msg');
+      const percentEl = document.getElementById('progress-percent');
+
+      trainBtn.disabled = true;
+      progressWrap.classList.remove('hidden');
+      document.getElementById('step-3').classList.add('hidden');
+
+      const stages = [
+        {p: 15, msg: "Uploading dataset..."},
+        {p: 35, msg: "Preprocessing features..."},
+        {p: 55, msg: "Training 13 models..."},
+        {p: 75, msg: "Evaluating performance..."},
+        {p: 90, msg: "Generating AI insights..."},
+        {p: 100, msg: "Finalizing results..."}
+      ];
+
+      let i = 0;
+      const interval = setInterval(() => {
+        if (i < stages.length) {
+          progressFill.style.width = stages[i].p + '%';
+          percentEl.textContent = stages[i].p + '%';
+          progressMsg.textContent = stages[i].msg;
+          i++;
+        }
+      }, 1400);
+
+      try {
+        const form = new FormData();
+        form.append('file', selectedFile);
+
+        const res = await fetch(`${apiBase}/api/train`, {
+          method: 'POST',
+          body: form
+        });
+
+        clearInterval(interval);
+        progressFill.style.width = '100%';
+        percentEl.textContent = '100%';
+
+        if (!res.ok) throw new Error("Training failed");
+
+        const data = await res.json();
+        renderResults(data);
+
+        // Show results step
+        document.getElementById('step-4').classList.add('active');
+        document.getElementById('insights-box').classList.add('active');
+
+      } catch (err) {
+        clearInterval(interval);
+        alert("Error during training: " + err.message);
+      } finally {
+        trainBtn.disabled = false;
+      }
+    });
+
+    // ==================== RENDER RESULTS ====================
+    function renderResults({ results, insights }) {
+      const { models, best_model, best_score, problem_type } = results;
+      const sorted = [...models].sort((a, b) => b.f1_score - a.f1_score);
+
+      // Summary Badges
+      document.getElementById('summary-badges').innerHTML = `
+        <div class="glass rounded-2xl p-6 text-center">
+          <p class="text-xs text-slate-400">Best Model</p>
+          <p class="text-xl font-semibold text-cyan-400">${best_model}</p>
+        </div>
+        <div class="glass rounded-2xl p-6 text-center">
+          <p class="text-xs text-slate-400">Best Score</p>
+          <p class="text-3xl font-bold">${(best_score*100).toFixed(1)}%</p>
+        </div>
+        <div class="glass rounded-2xl p-6 text-center">
+          <p class="text-xs text-slate-400">Task</p>
+          <p class="text-xl font-semibold">${problem_type === 'regression' ? 'Regression' : 'Classification'}</p>
+        </div>
+        <div class="glass rounded-2xl p-6 text-center">
+          <p class="text-xs text-slate-400">Models Trained</p>
+          <p class="text-3xl font-bold">${models.length}</p>
+        </div>
+      `;
+
+      // Leaderboard
+      const tbody = document.getElementById('results-body');
+      tbody.innerHTML = sorted.map((m, i) => `
+        <tr class="model-row ${i === 0 ? 'bg-indigo-500/10' : ''}">
+          <td class="py-5 px-6 font-medium">${i === 0 ? '🥇 Best' : i+1}</td>
+          <td class="py-5 px-6">${m.name}</td>
+          <td class="py-5 px-6 font-mono">${(m.accuracy*100).toFixed(1)}%</td>
+          <td class="py-5 px-6">${(m.precision*100).toFixed(1)}%</td>
+          <td class="py-5 px-6">${(m.recall*100).toFixed(1)}%</td>
+          <td class="py-5 px-6 font-semibold text-cyan-400">${(m.f1_score*100).toFixed(1)}%</td>
+        </tr>
+      `).join('');
+
+      // Insights
+      if (insights) {
+        document.getElementById('insights-text').textContent = insights;
+      }
+    }
+
+    // ==================== DOWNLOAD ====================
+    document.getElementById('download-btn').addEventListener('click', async () => {
+      if (!apiBase) return alert("Backend not connected");
+      try {
+        const res = await fetch(`${apiBase}/api/download-model`);
+        if (!res.ok) throw new Error("Download failed");
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'best_model.pkl';
+        a.click();
+      } catch (e) {
+        alert("Download failed: " + e.message);
+      }
+    });
+
+    // Initial update
+    function updateTrainBtn() {
+      trainBtn.disabled = !(selectedFile && apiBase);
+    }
+  </script>
 </body>
 </html>
