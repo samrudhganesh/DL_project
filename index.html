@@ -3,244 +3,263 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoML Studio • Intelligent Model Forge</title>
+  <title>AutoML Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
-  
   <style>
-    :root { --accent: #6366f1; --accent2: #22d3ee; }
-    body { font-family: 'Inter', system_ui, sans-serif; background: #0a0c14; color: #e2e8f0; }
+    body { font-family: 'Inter', sans-serif; background: #0a0c14; color: #e2e8f0; }
     .logo-font { font-family: 'Space Grotesk', sans-serif; }
-
-    .glass {
-      background: rgba(15, 23, 42, 0.75);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(148, 163, 184, 0.15);
-    }
-
+    .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border: 1px solid rgba(148,163,184,0.2); }
     .step { display: none; }
-    .step.active { display: block; animation: fadeIn 0.5s ease forwards; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .train-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+    .step.active { display: block; animation: fadeIn 0.4s ease forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
   </style>
 </head>
-<body class="min-h-screen pb-20">
+<body class="min-h-screen pb-12">
 
-  <header class="border-b border-slate-800 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
-    <div class="max-w-6xl mx-auto px-6 py-5 flex items-center gap-4">
-      <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-cyan-400 rounded-2xl flex items-center justify-center text-2xl">⚡</div>
-      <div>
-        <h1 class="logo-font text-3xl font-semibold tracking-tighter">AutoML Studio</h1>
-        <p class="text-xs text-slate-500">POWERED BY GROQ + HUGGING FACE</p>
-      </div>
+<header class="bg-black/80 border-b border-slate-700 py-5 sticky top-0 z-50">
+  <div class="max-w-6xl mx-auto px-6 flex items-center gap-4">
+    <div class="w-9 h-9 bg-gradient-to-br from-indigo-500 to-cyan-400 rounded-2xl flex items-center justify-center text-2xl">⚡</div>
+    <div>
+      <h1 class="logo-font text-3xl font-bold">AutoML Studio</h1>
+      <p class="text-xs text-slate-500">POWERED BY GROQ + HUGGING FACE</p>
     </div>
-  </header>
+  </div>
+</header>
 
-  <main class="max-w-6xl mx-auto px-6 pt-10">
+<main class="max-w-6xl mx-auto px-6 py-10">
 
-    <!-- Step 1: Connect -->
-    <div id="step-1" class="step active glass rounded-3xl p-8 mb-8">
-      <h2 class="text-xl font-semibold mb-2">🔗 Step 1: Connect Backend</h2>
-      <p class="text-slate-400 mb-6">Enter your Hugging Face Space URL</p>
-      <div class="flex gap-4">
-        <input id="api-url-input" type="url" class="flex-1 bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-2xl px-6 py-4 outline-none text-sm" 
-               placeholder="https://samrudhganesh-projectdl.hf.space">
-        <button id="save-url" class="px-10 font-semibold bg-indigo-600 hover:bg-indigo-500 rounded-2xl">Connect</button>
-      </div>
-      <div id="url-status" class="mt-4 text-sm"></div>
+  <!-- Step 1: Connect -->
+  <div id="step-1" class="step active glass rounded-3xl p-8 mb-8">
+    <h2 class="text-xl font-semibold mb-2 flex items-center gap-3">🔗 Step 1: Connect Backend</h2>
+    <p class="text-slate-400 mb-6">Enter your Hugging Face Space URL</p>
+    <div class="flex gap-4">
+      <input id="api-url-input" type="url" class="flex-1 bg-slate-900 border border-slate-700 focus:border-indigo-500 rounded-2xl px-6 py-4 outline-none" placeholder="https://samrudhganesh-projectdl.hf.space">
+      <button id="save-url" class="px-10 font-semibold bg-indigo-600 hover:bg-indigo-500 rounded-2xl">Connect</button>
     </div>
+    <div id="url-status" class="mt-4 text-sm text-emerald-400"></div>
+  </div>
 
-    <!-- Step 2: Upload -->
-    <div id="step-2" class="step glass rounded-3xl p-8 mb-8">
-      <h2 class="text-xl font-semibold mb-6">📂 Step 2: Upload Dataset</h2>
-      <div id="drop-zone" class="border-2 border-dashed border-slate-600 hover:border-indigo-400 rounded-3xl p-16 text-center transition-all cursor-pointer">
-        <div class="text-6xl mb-6">📊</div>
-        <p class="text-xl font-medium">Drop your CSV file here</p>
-        <p class="text-slate-400 mt-2">Last column must be the target variable</p>
-      </div>
-      <input type="file" id="file-input" accept=".csv" class="hidden">
-      
-      <div id="file-info" class="hidden mt-8 glass rounded-2xl p-6">
-        <div class="flex items-center gap-4">
-          <span class="text-4xl">📄</span>
-          <div>
-            <p id="filename" class="font-medium text-lg"></p>
-            <p id="filesize" class="text-slate-400"></p>
-          </div>
+  <!-- Step 2: Upload -->
+  <div id="step-2" class="step glass rounded-3xl p-8 mb-8">
+    <h2 class="text-xl font-semibold mb-6 flex items-center gap-3">📂 Step 2: Upload Dataset</h2>
+    <div id="drop-zone" class="border-2 border-dashed border-slate-600 hover:border-indigo-400 rounded-3xl p-16 text-center cursor-pointer transition-all">
+      <div class="text-6xl mb-6">📊</div>
+      <p class="text-xl font-medium">Drop your CSV file here</p>
+      <p class="text-slate-400">Last column = Target variable</p>
+    </div>
+    <input type="file" id="file-input" accept=".csv" class="hidden">
+    <div id="file-info" class="hidden mt-8 glass rounded-2xl p-6">
+      <div class="flex items-center gap-4">
+        <span class="text-4xl">📄</span>
+        <div>
+          <p id="filename" class="font-medium"></p>
+          <p id="filesize" class="text-slate-400"></p>
         </div>
       </div>
     </div>
+  </div>
 
-    <!-- Step 3: Train -->
-    <div id="step-3" class="step glass rounded-3xl p-8 mb-8">
-      <button id="train-btn" disabled
-        class="train-btn w-full py-7 text-xl font-semibold bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-3xl flex items-center justify-center gap-3">
-        🚀 Train All Models
-      </button>
+  <!-- Step 3: Train -->
+  <div id="step-3" class="step glass rounded-3xl p-8 mb-8">
+    <button id="train-btn" disabled class="w-full py-7 text-xl font-semibold bg-gradient-to-r from-indigo-600 to-cyan-500 rounded-3xl flex items-center justify-center gap-3 disabled:opacity-50">
+      🚀 Train All Models
+    </button>
+  </div>
+
+  <!-- Progress -->
+  <div id="progress-wrap" class="glass rounded-3xl p-8 mb-8 hidden">
+    <div class="flex justify-between text-sm mb-2">
+      <span>Training in progress...</span>
+      <span id="progress-percent" class="font-mono text-cyan-400">0%</span>
     </div>
-
-    <!-- Progress -->
-    <div id="progress-wrap" class="hidden glass rounded-3xl p-8 mb-8">
-      <div class="flex justify-between mb-4 text-slate-400">
-        <span>Training in progress...</span>
-        <span id="progress-percent" class="font-mono">0%</span>
-      </div>
-      <div class="h-2.5 bg-slate-800 rounded-full overflow-hidden">
-        <div id="progress-fill" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 rounded-full transition-all" style="width:0%"></div>
-      </div>
-      <div id="progress-msg" class="mt-6 text-center text-slate-300">Uploading dataset...</div>
+    <div class="h-2 bg-slate-700 rounded-full overflow-hidden">
+      <div id="progress-fill" class="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-1000" style="width:0%"></div>
     </div>
+    <div id="progress-msg" class="mt-6 text-center text-slate-300">Uploading dataset...</div>
+  </div>
 
-    <!-- Results -->
-    <div id="step-4" class="step glass rounded-3xl p-8 hidden">
-      <h2 class="text-2xl font-semibold mb-8">🏆 Training Results</h2>
-      <div id="summary-badges" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10"></div>
-      
-      <div class="overflow-x-auto mb-10">
-        <table class="w-full">
-          <thead>
-            <tr class="border-b border-slate-700 text-xs uppercase text-slate-400">
-              <th class="py-5 px-6 text-left">Rank</th>
-              <th class="py-5 px-6 text-left">Model</th>
-              <th class="py-5 px-6 text-left">Score</th>
-              <th class="py-5 px-6 text-left">Precision</th>
-              <th class="py-5 px-6 text-left">Recall</th>
-              <th class="py-5 px-6 text-left">F1 Score</th>
-            </tr>
-          </thead>
-          <tbody id="results-body" class="text-sm divide-y divide-slate-700"></tbody>
-        </table>
-      </div>
-
-      <button id="download-btn" 
-        class="w-full py-5 bg-slate-900 hover:bg-slate-800 border border-cyan-400 text-cyan-400 font-semibold rounded-2xl">
+  <!-- Results -->
+  <div id="step-4" class="step glass rounded-3xl p-8 hidden">
+    <div class="flex items-center gap-3 mb-8">
+      <span class="text-3xl">🏆</span>
+      <h2 class="text-2xl font-semibold">Training Results</h2>
+    </div>
+    <div id="summary-badges" class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10"></div>
+    <div class="overflow-x-auto">
+      <table class="w-full">
+        <thead>
+          <tr class="border-b border-slate-700 text-xs uppercase text-slate-400">
+            <th class="py-5 px-6 text-left">Rank</th>
+            <th class="py-5 px-6 text-left">Model</th>
+            <th class="py-5 px-6 text-left">Score</th>
+            <th class="py-5 px-6 text-left">Precision</th>
+            <th class="py-5 px-6 text-left">Recall</th>
+            <th class="py-5 px-6 text-left">F1 Score</th>
+          </tr>
+        </thead>
+        <tbody id="results-body" class="text-sm divide-y divide-slate-700"></tbody>
+      </table>
+    </div>
+    <div class="mt-10 flex justify-center">
+      <button id="download-btn" class="px-12 py-6 bg-gradient-to-r from-cyan-500 to-indigo-500 hover:brightness-110 rounded-2xl font-semibold flex items-center gap-3">
         ⬇️ Download Best Model (.pkl)
       </button>
     </div>
+  </div>
 
-    <!-- AI Insights -->
-    <div id="insights-box" class="step glass rounded-3xl p-8 mt-8 hidden">
-      <h2 class="text-2xl font-semibold mb-6">🤖 AI Dataset Insights</h2>
-      <div id="insights-text" class="text-slate-300 leading-relaxed whitespace-pre-wrap"></div>
-    </div>
+  <!-- AI Insights -->
+  <div id="insights-box" class="step glass rounded-3xl p-8 mt-8 hidden">
+    <h2 class="text-2xl font-semibold mb-6 flex items-center gap-3">🤖 AI Dataset Insights</h2>
+    <div id="insights-text" class="text-slate-300 leading-relaxed whitespace-pre-wrap"></div>
+  </div>
 
-  </main>
+</main>
 
-  <script>
-    let apiBase = localStorage.getItem('automl_api') || '';
-    let selectedFile = null;
+<script>
+  let apiBase = localStorage.getItem('automl_api') || '';
+  let selectedFile = null;
 
-    const apiInput = document.getElementById('api-url-input');
-    const saveBtn = document.getElementById('save-url');
-    const urlStatus = document.getElementById('url-status');
-    const dropZone = document.getElementById('drop-zone');
-    const fileInput = document.getElementById('file-input');
-    const fileInfo = document.getElementById('file-info');
-    const trainBtn = document.getElementById('train-btn');
+  const apiInput = document.getElementById('api-url-input');
+  const saveBtn = document.getElementById('save-url');
+  const urlStatus = document.getElementById('url-status');
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const fileInfo = document.getElementById('file-info');
+  const trainBtn = document.getElementById('train-btn');
 
-    apiInput.value = apiBase;
+  apiInput.value = apiBase;
+  if (apiBase) {
+    urlStatus.textContent = "✅ Backend connected";
+    document.getElementById('step-1').classList.remove('active');
+    document.getElementById('step-2').classList.add('active');
+  }
 
-    if (apiBase) {
-      urlStatus.innerHTML = `✅ Backend connected`;
-      document.getElementById('step-1').classList.remove('active');
-      document.getElementById('step-2').classList.add('active');
+  function goToStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-' + n).classList.add('active');
+  }
+
+  // Connect Backend
+  saveBtn.addEventListener('click', () => {
+    const url = apiInput.value.trim().replace(/\/$/, '');
+    if (!url) return alert("Please enter your backend URL");
+    apiBase = url;
+    localStorage.setItem('automl_api', url);
+    urlStatus.textContent = "✅ Backend connected";
+    goToStep(2);
+  });
+
+  // Upload
+  dropZone.addEventListener('click', () => fileInput.click());
+  dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = '#6366f1'; });
+  dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = '');
+  dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.style.borderColor = ''; handleFile(e.dataTransfer.files[0]); });
+  fileInput.addEventListener('change', e => handleFile(e.target.files[0]));
+
+  function handleFile(file) {
+    if (!file || !file.name.endsWith('.csv')) return alert("Please upload a .csv file");
+    selectedFile = file;
+    document.getElementById('filename').textContent = file.name;
+    document.getElementById('filesize').textContent = (file.size/1024).toFixed(1) + " KB";
+    fileInfo.classList.remove('hidden');
+    goToStep(3);
+  }
+
+  // Train
+  trainBtn.addEventListener('click', async () => {
+    if (!selectedFile || !apiBase) return;
+
+    const progressWrap = document.getElementById('progress-wrap');
+    progressWrap.classList.remove('hidden');
+    document.getElementById('step-3').classList.add('hidden');
+
+    let progress = 0;
+    const progressFill = document.getElementById('progress-fill');
+    const progressMsg = document.getElementById('progress-msg');
+    const percentEl = document.getElementById('progress-percent');
+
+    const stages = ["Uploading dataset...", "Preprocessing...", "Training 13 models...", "Evaluating...", "Generating AI insights..."];
+
+    const interval = setInterval(() => {
+      progress += Math.random() * 18 + 8;
+      if (progress > 95) progress = 95;
+      progressFill.style.width = progress + '%';
+      percentEl.textContent = Math.round(progress) + '%';
+      progressMsg.textContent = stages[Math.floor(progress/20)] || "Finalizing...";
+    }, 900);
+
+    try {
+      const form = new FormData();
+      form.append('file', selectedFile);
+
+      const res = await fetch(`${apiBase}/api/train`, { method: 'POST', body: form });
+
+      clearInterval(interval);
+      progressFill.style.width = '100%';
+      percentEl.textContent = '100%';
+
+      if (!res.ok) throw new Error("Training failed");
+
+      const data = await res.json();
+
+      // Show results
+      progressWrap.classList.add('hidden');
+      renderResults(data);
+      goToStep(4);
+      document.getElementById('insights-box').classList.remove('hidden');
+      document.getElementById('insights-box').classList.add('active');
+
+    } catch (e) {
+      clearInterval(interval);
+      progressWrap.classList.add('hidden');
+      alert("Training error: " + e.message);
     }
+  });
 
-    function goToStep(n) {
-      document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
-      const stepEl = document.getElementById('step-' + n);
-      if (stepEl) stepEl.classList.add('active');
+  function renderResults({ results, insights }) {
+    const { models, best_model, best_score, problem_type } = results;
+    const sorted = [...models].sort((a, b) => b.f1_score - a.f1_score);
+
+    // Summary badges
+    document.getElementById('summary-badges').innerHTML = `
+      <div class="glass rounded-2xl p-6 text-center"><p class="text-xs text-slate-400">Best Model</p><p class="text-xl font-semibold text-cyan-400">${best_model}</p></div>
+      <div class="glass rounded-2xl p-6 text-center"><p class="text-xs text-slate-400">Best Score</p><p class="text-3xl font-bold">${(best_score*100).toFixed(1)}%</p></div>
+      <div class="glass rounded-2xl p-6 text-center"><p class="text-xs text-slate-400">Task</p><p class="text-xl font-semibold">${problem_type === 'regression' ? 'Regression' : 'Classification'}</p></div>
+      <div class="glass rounded-2xl p-6 text-center"><p class="text-xs text-slate-400">Models Trained</p><p class="text-3xl font-bold">${models.length}</p></div>
+    `;
+
+    // Leaderboard
+    const tbody = document.getElementById('results-body');
+    tbody.innerHTML = sorted.map((m, i) => `
+      <tr class="${i===0 ? 'bg-indigo-500/10' : ''}">
+        <td class="py-5 px-6 font-medium">${i===0 ? '🥇 Best' : i+1}</td>
+        <td class="py-5 px-6">${m.name}</td>
+        <td class="py-5 px-6 font-mono">${(m.accuracy*100).toFixed(1)}%</td>
+        <td class="py-5 px-6">${(m.precision*100).toFixed(1)}%</td>
+        <td class="py-5 px-6">${(m.recall*100).toFixed(1)}%</td>
+        <td class="py-5 px-6 font-semibold text-cyan-400">${(m.f1_score*100).toFixed(1)}%</td>
+      </tr>
+    `).join('');
+
+    if (insights) document.getElementById('insights-text').textContent = insights;
+  }
+
+  // Download
+  document.getElementById('download-btn').addEventListener('click', async () => {
+    if (!apiBase) return alert("Backend not connected");
+    try {
+      const res = await fetch(`${apiBase}/api/download-model`);
+      if (!res.ok) throw new Error("Download failed");
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'best_model.pkl';
+      a.click();
+    } catch (e) {
+      alert("Download failed: " + e.message);
     }
-
-    // Connect Backend
-    saveBtn.addEventListener('click', () => {
-      let url = apiInput.value.trim().replace(/\/$/, '');
-      if (!url) return alert("Please enter backend URL");
-      apiBase = url;
-      localStorage.setItem('automl_api', url);
-      urlStatus.innerHTML = `✅ Backend connected`;
-      goToStep(2);
-    });
-
-    // Upload handling
-    dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.style.borderColor = '#6366f1'; });
-    dropZone.addEventListener('dragleave', () => dropZone.style.borderColor = ''); 
-    dropZone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropZone.style.borderColor = '';
-      handleFile(e.dataTransfer.files[0]);
-    });
-
-    fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
-
-    function handleFile(file) {
-      if (!file || !file.name.endsWith('.csv')) {
-        alert("Please select a valid .csv file");
-        return;
-      }
-
-      selectedFile = file;
-      document.getElementById('filename').textContent = file.name;
-      document.getElementById('filesize').textContent = (file.size / 1024).toFixed(1) + " KB";
-      fileInfo.classList.remove('hidden');
-
-      // Auto move to Train step
-      setTimeout(() => goToStep(3), 600);
-    }
-
-    // Enable Train button when both conditions are met
-    function updateTrainButton() {
-      trainBtn.disabled = !(selectedFile && apiBase);
-    }
-
-    // Train button click
-    trainBtn.addEventListener('click', async () => {
-      if (!selectedFile || !apiBase) return;
-
-      const progressWrap = document.getElementById('progress-wrap');
-      progressWrap.classList.remove('hidden');
-      document.getElementById('step-3').classList.add('hidden');
-
-      // Simple progress simulation
-      let progress = 0;
-      const progressFill = document.getElementById('progress-fill');
-      const progressMsg = document.getElementById('progress-msg');
-      const percentEl = document.getElementById('progress-percent');
-
-      const interval = setInterval(() => {
-        progress += 12;
-        if (progress > 100) progress = 100;
-        progressFill.style.width = progress + '%';
-        percentEl.textContent = progress + '%';
-
-        if (progress < 30) progressMsg.textContent = "Uploading dataset...";
-        else if (progress < 60) progressMsg.textContent = "Training models...";
-        else if (progress < 85) progressMsg.textContent = "Evaluating results...";
-        else progressMsg.textContent = "Generating insights...";
-
-        if (progress >= 100) {
-          clearInterval(interval);
-          // Here you would normally call the real /api/train endpoint
-          // For now, showing a demo message
-          setTimeout(() => {
-            alert("✅ Training completed! (Demo Mode)\n\nIn real deployment, this will show actual results.");
-            goToStep(4);
-          }, 800);
-        }
-      }, 300);
-    });
-
-    // Make sure button enables when file is selected
-    setInterval(updateTrainButton, 500);
-  </script>
+  });
+</script>
 </body>
 </html>
