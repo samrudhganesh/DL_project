@@ -105,7 +105,6 @@
               <p id="filesize" class="text-xs text-slate-400"></p>
             </div>
           </div>
-          <div id="file-stats" class="text-right text-sm text-slate-300"></div>
         </div>
       </div>
     </div>
@@ -135,10 +134,8 @@
     <div id="step-4" class="step glass rounded-3xl p-8">
       <h2 class="text-2xl font-semibold mb-8">🏆 Training Results</h2>
       
-      <!-- Summary -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10" id="summary-badges"></div>
 
-      <!-- Leaderboard -->
       <div class="overflow-x-auto mb-10">
         <table class="w-full">
           <thead>
@@ -174,12 +171,9 @@
   </main>
 
   <script>
-    // ==================== STATE ====================
     let apiBase = localStorage.getItem('automl_api') || '';
     let selectedFile = null;
-    let currentStep = 1;
 
-    // ==================== ELEMENTS ====================
     const apiInput = document.getElementById('api-url-input');
     const saveBtn = document.getElementById('save-url');
     const urlStatus = document.getElementById('url-status');
@@ -188,40 +182,36 @@
     const fileInfo = document.getElementById('file-info');
     const trainBtn = document.getElementById('train-btn');
 
-    // ==================== INIT ====================
     apiInput.value = apiBase;
     if (apiBase) {
       urlStatus.innerHTML = `✅ Connected successfully`;
-      goToStep(2);
+      document.getElementById('step-1').classList.remove('active');
+      document.getElementById('step-2').classList.add('active');
     }
 
-    // ==================== STEP NAVIGATION ====================
     function goToStep(step) {
       document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
       document.getElementById(`step-${step}`).classList.add('active');
-      currentStep = step;
     }
 
-    // ==================== CONNECT BACKEND ====================
+    // Connect Backend
     saveBtn.addEventListener('click', () => {
       const url = apiInput.value.trim().replace(/\/$/, '');
       if (!url) return alert("Please enter your backend URL");
       
       apiBase = url;
       localStorage.setItem('automl_api', url);
-      urlStatus.innerHTML = `✅ Connected to backend`;
+      urlStatus.innerHTML = `✅ Connected successfully`;
       goToStep(2);
     });
 
-    // ==================== UPLOAD ====================
+    // Upload
     dropZone.addEventListener('click', () => fileInput.click());
     dropZone.addEventListener('dragover', e => {
       e.preventDefault();
       dropZone.classList.add('border-indigo-400', 'bg-indigo-500/5');
     });
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('border-indigo-400', 'bg-indigo-500/5');
-    });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-indigo-400', 'bg-indigo-500/5'));
     dropZone.addEventListener('drop', e => {
       e.preventDefault();
       dropZone.classList.remove('border-indigo-400', 'bg-indigo-500/5');
@@ -241,10 +231,10 @@
       document.getElementById('filesize').textContent = `${(file.size/1024).toFixed(1)} KB`;
       fileInfo.classList.remove('hidden');
 
-      goToStep(3);   // Move to Train step after upload
+      goToStep(3);
     }
 
-    // ==================== TRAIN BUTTON ====================
+    // Train
     trainBtn.addEventListener('click', async () => {
       if (!selectedFile || !apiBase) return;
 
@@ -280,10 +270,7 @@
         const form = new FormData();
         form.append('file', selectedFile);
 
-        const res = await fetch(`${apiBase}/api/train`, {
-          method: 'POST',
-          body: form
-        });
+        const res = await fetch(`${apiBase}/api/train`, { method: 'POST', body: form });
 
         clearInterval(interval);
         progressFill.style.width = '100%';
@@ -294,24 +281,23 @@
         const data = await res.json();
         renderResults(data);
 
-        // Show results step
-        document.getElementById('step-4').classList.add('active');
+        goToStep(4);
+        document.getElementById('insights-box').classList.remove('hidden');
         document.getElementById('insights-box').classList.add('active');
 
       } catch (err) {
         clearInterval(interval);
-        alert("Error during training: " + err.message);
+        alert("Error: " + err.message);
       } finally {
         trainBtn.disabled = false;
       }
     });
 
-    // ==================== RENDER RESULTS ====================
     function renderResults({ results, insights }) {
       const { models, best_model, best_score, problem_type } = results;
       const sorted = [...models].sort((a, b) => b.f1_score - a.f1_score);
 
-      // Summary Badges
+      // Summary
       document.getElementById('summary-badges').innerHTML = `
         <div class="glass rounded-2xl p-6 text-center">
           <p class="text-xs text-slate-400">Best Model</p>
@@ -344,33 +330,26 @@
         </tr>
       `).join('');
 
-      // Insights
       if (insights) {
         document.getElementById('insights-text').textContent = insights;
       }
     }
 
-    // ==================== DOWNLOAD ====================
+    // Download
     document.getElementById('download-btn').addEventListener('click', async () => {
       if (!apiBase) return alert("Backend not connected");
       try {
         const res = await fetch(`${apiBase}/api/download-model`);
         if (!res.ok) throw new Error("Download failed");
         const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(blob);
         a.download = 'best_model.pkl';
         a.click();
       } catch (e) {
         alert("Download failed: " + e.message);
       }
     });
-
-    // Initial update
-    function updateTrainBtn() {
-      trainBtn.disabled = !(selectedFile && apiBase);
-    }
   </script>
 </body>
 </html>
